@@ -1,43 +1,31 @@
 import Image from "next/image";
-import styles from "./page.module.scss";
+import styles from "../page.module.scss";
 import logoImg from "/public/logo.svg";
 import Link from "next/link";
 import { api } from "@/services/api";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 
-export default function Home() {
-	async function handleLogin(formData: FormData) {
+export default function SignUp() {
+	async function handleRegister(formData: FormData) {
 		"use server";
-
+		const name = formData.get("name");
 		const email = formData.get("email");
 		const password = formData.get("password");
 
-		if (email === "" || password === "") {
+		if (name === "" || email === "" || password === "") {
 			return;
 		}
 
 		try {
-			const response = await api.post("/session", {
+			await api.post("/users", {
+				name,
 				email,
 				password,
 			});
-			if (!response.data.token) {
-				return;
-			}
-			const expressTime = 60 * 60 * 24 * 1000;
-
-			cookies().set("session", response.data.token, {
-				maxAge: expressTime,
-				path: "/",
-				httpOnly: false,
-				secure: process.env.NODE_ENV === "production",
-			});
+			redirect("/");
 		} catch (err) {
-			console.log(err);
-			return;
+			console.log("error");
 		}
-		redirect("/dashboard");
 	}
 
 	return (
@@ -46,7 +34,16 @@ export default function Home() {
 				<Image src={logoImg} alt="logo da pizzaria" />
 
 				<section className={styles.login}>
-					<form action={handleLogin}>
+					<h1>Criando sua conta</h1>
+					<form action={handleRegister}>
+						<input
+							type="text"
+							required
+							name="name"
+							placeholder="Digite seu nome"
+							className={styles.input}
+						/>
+
 						<input
 							type="email"
 							required
@@ -64,12 +61,12 @@ export default function Home() {
 						/>
 
 						<button type="submit" className={styles.button}>
-							Acessar
+							Cadastrar
 						</button>
 					</form>
 
-					<Link href="/signup" className={styles.text}>
-						Não possui uma conta ? cadastre-se
+					<Link href="/" className={styles.text}>
+						Já possui uma conta? faça o login
 					</Link>
 				</section>
 			</div>
